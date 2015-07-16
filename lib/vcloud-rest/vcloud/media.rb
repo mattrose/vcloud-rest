@@ -1,6 +1,13 @@
 module VCloudClient
   class Connection
 
+    def delete_media(itemid)
+        params = {
+          'method' => :delete,
+          'command' => "/catalogItem/#{itemid}"
+        }
+        response, headers = send_request(params)
+    end
     def upload_media(vdcId, mediaName, mediaDescription, mediaFile, type, catalogId, uploadOptions={})
       raise ::IOError, "File #{mediaFile} is missing." unless File.exists?(mediaFile)
 
