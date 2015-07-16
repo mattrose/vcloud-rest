@@ -96,7 +96,8 @@ module VCloudClient
         { :id => catalogItemId, :description => description, :items => items, :type => 'vAppTemplate' }
       elsif response.css("Entity[type='application/vnd.vmware.vcloud.media+xml']").size > 0
         name = response.css("Entity[type='application/vnd.vmware.vcloud.media+xml']").first['name']
-        { :id => catalogItemId, :description => description, :name => name, :type => 'media' }
+	createdOn = response.css("CatalogItem DateCreated").text
+        { :id => catalogItemId, :description => description, :name => name, :type => 'media', :created => createdOn }
       else
         @logger.warn 'WARNING: either this catalog item is empty or contains something not managed by vcloud-rest'
         { :id => catalogItemId, :description => description, :type => 'unknown' }
