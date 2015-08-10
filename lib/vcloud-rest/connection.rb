@@ -164,7 +164,7 @@ module VCloudClient
         req_params = {:method => params['method'],
                       :headers => {:accept => "application/*+xml;version=#{@api_version}"},
                       :url => "#{@api_url}#{params['command']}",
-                      :payload => payload}
+                      :payload => payload,:verify_ssl => false}
 
         req_params[:headers].merge!({:content_type => content_type}) if content_type
 
