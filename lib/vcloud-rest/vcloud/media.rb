@@ -41,7 +41,7 @@ module VCloudClient
       @logger.debug "Media item created - #{mediaId}"
 
       # Get File upload:default link from response
-      uploadHref = response.css("Files Link [rel='upload:default']").first[:href]
+      uploadHref = response.css('Media Files File Link').first[:href]
       fileUpload = uploadHref.gsub(/(.*)(\/transfer\/.*)/, "\\2")
 
       begin
