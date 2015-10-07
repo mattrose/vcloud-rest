@@ -1,6 +1,26 @@
 module VCloudClient
   class Connection
     ##
+    # Insert an ISO from the catalog #NB: Must use mediaid
+    def media_insert(vmid,mediaid)
+      params = {
+        'method' => :post,
+        'command' => "/vApp/vm-#{vmid}/media/action/insertMedia"
+      }
+builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns6:MediaInsertOrEjectParams
+    xmlns="http://www.vmware.com/vcloud/versions" xmlns:ns2="http://schemas.dmtf.org/ovf/envelope/1" xmlns:ns3="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData" xmlns:ns4="http://schemas.dmtf.org/wbem/wscim/1/common" xmlns:ns5="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData" xmlns:ns6="http://www.vmware.com/vcloud/v1.5" xmlns:ns7="http://www.vmware.com/schema/ovf" xmlns:ns8="http://schemas.dmtf.org/ovf/environment/1" xmlns:ns9="http://www.vmware.com/vcloud/extension/v1.5">
+    <ns6:Media
+        type="application/vnd.vmware.vcloud.media+xml"
+        name="integration-10.1-b10_1_0_287"
+        id="urn:vcloud:media:%s"
+        href="https://10.110.108.93/api/media/%s"/>
+</ns6:MediaInsertOrEjectParams>
+'
+      body = builder % [mediaid,mediaid]
+      response, headers = send_request(params,body,"application/vnd.vmware.vcloud.mediaInsertOrEjectParams+xml")
+    end
+
     # Retrieve information (i.e., memory and CPUs)
     def get_vm_info(vmid)
       params = {

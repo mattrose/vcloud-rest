@@ -22,6 +22,7 @@ require 'httpclient'
 require 'ruby-progressbar'
 require 'logger'
 require 'uri'
+require 'date'
 
 require 'vcloud-rest/vcloud/vapp'
 require 'vcloud-rest/vcloud/org'

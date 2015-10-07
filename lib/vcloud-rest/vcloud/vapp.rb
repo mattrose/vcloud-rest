@@ -27,6 +27,7 @@ module VCloudClient
       end
 
       description = response.css("Description").first
+      created = DateTime.iso8601(response.css("DateCreated").text)
       description = description.text unless description.nil?
 
       ip = response.css('IpAddress').first
@@ -105,7 +106,7 @@ module VCloudClient
       end
 
       { :id => vAppId, :name => name, :description => description,
-        :status => status, :ip => ip, :networks => networks,
+        :created => created, :status => status, :ip => ip, :networks => networks,
         :vapp_snapshot => vapp_snapshot, :vms_hash => vms_hash }
     end
 
