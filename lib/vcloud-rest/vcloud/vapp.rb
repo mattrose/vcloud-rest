@@ -493,5 +493,29 @@ module VCloudClient
       task_id = headers[:location].gsub(/.*\/task\//, "")
       task_id
     end
+    def reset_lease(vappId,shutdownSeconds,deleteSeconds)
+      params = {
+        'method' => :put,
+	'command' => "/vApp/vapp-#{vappId}/leaseSettingsSection"
+      }
+      builder = '<?xml version="1.0" encoding="UTF-8"?><LeaseSettingsSection
+    xmlns="http://www.vmware.com/vcloud/v1.5"
+    xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    href="https://dev-aus-vcloud.swdev.local/api/vApp/vapp-%s/leaseSettingsSection/"
+    ovf:required="false"
+    type="application/vnd.vmware.vcloud.leaseSettingsSection+xml"
+    xsi:schemaLocation="http://schemas.dmtf.org/ovf/envelope/1 http://schemas.dmtf.org/ovf/envelope/1/dsp8023_1.1.0.xsd http://www.vmware.com/vcloud/v1.5 http://https://vcloud.example.com/api/v1.5/schema/master.xsd">
+    <ovf:Info>Lease settings section</ovf:Info>
+    <Link
+        href="https://dev-aus-vcloud.swdev.local/api/vApp/vapp-%s/leaseSettingsSection/"
+        rel="edit"
+        type="application/vnd.vmware.vcloud.leaseSettingsSection+xml"/>
+    <DeploymentLeaseInSeconds>%s</DeploymentLeaseInSeconds>
+    <StorageLeaseInSeconds>%s</StorageLeaseInSeconds>
+</LeaseSettingsSection>'
+      body = builder % [vappId,vappId,shutdownSeconds,deleteSeconds]  
+      response, headers = send_request(params,body,"application/vnd.vmware.vcloud.leasesettingssection+xml")
+    end  
   end
 end
