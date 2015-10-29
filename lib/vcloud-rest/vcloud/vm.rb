@@ -21,6 +21,39 @@ builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
       response, headers = send_request(params,body,"application/vnd.vmware.vcloud.mediaInsertOrEjectParams+xml")
     end
 
+    def get_cdrom_name(vmid)
+      params = {
+        'method' => :get,
+        'command' => "/vApp/vm-#{vmid}/virtualHardwareSection"
+      }
+
+      response, headers = send_request(params)
+      result = {}
+      isoname = ""
+      response.css('ovf|Item').each { |item|
+        isoname = item.css('rasd|HostResource').text if item.css('rasd|ResourceType').text == "15"
+      }
+      isoname
+    end
+    def media_eject(vmid,mediaid)
+
+      params = {
+        'method' => :post,
+        'command' => "/vApp/vm-#{vmid}/media/action/ejectMedia"
+      }
+      builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns6:MediaInsertOrEjectParams
+    xmlns="http://www.vmware.com/vcloud/versions" xmlns:ns2="http://schemas.dmtf.org/ovf/envelope/1" xmlns:ns3="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData" xmlns:ns4="http://schemas.dmtf.org/wbem/wscim/1/common" xmlns:ns5="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData" xmlns:ns6="http://www.vmware.com/vcloud/v1.5" xmlns:ns7="http://www.vmware.com/schema/ovf" xmlns:ns8="http://schemas.dmtf.org/ovf/environment/1" xmlns:ns9="http://www.vmware.com/vcloud/extension/v1.5">
+    <ns6:Media
+        type="application/vnd.vmware.vcloud.media+xml"
+        href="%s/media/%s"/>
+</ns6:MediaInsertOrEjectParams>
+'
+      body = builder % [@api_url,mediaid]
+      puts body
+      response, headers = send_request(params,body,"application/vnd.vmware.vcloud.mediaInsertOrEjectParams+xml")
+    end
+
     # Retrieve information (i.e., memory and CPUs)
     def get_vm_info(vmid)
       params = {
