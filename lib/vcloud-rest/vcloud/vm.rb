@@ -550,9 +550,8 @@ builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
     private
       def add_disk(source_xml, disk_info)
-
         disks_count = source_xml.css("Item").css("rasd|HostResource").count
-
+        p disks_count
         disk_parent_ids = Set.new
 
         source_xml.css("Item").each do |entry|
@@ -561,31 +560,40 @@ builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
           disk_parent_ids << parent_id if resource_type == '17'
         end
 
-        raise InvalidStateError, "Could not handle this request because multiple nodes with ResourceType 17 and different rasd:Parent exist" if disk_parent_ids.size > 1
-
-        raise InvalidStateError, "Could not handle this request because I could not find a node with ResourceType 17" if disk_parent_ids.size == 0
-
-        # FIXME: This is a hack, but dealing with nokogiri APIs can be quite
-        # frustrating sometimes...
         sibling = source_xml.css("Item").first
         new_disk = Nokogiri::XML::Node.new "PLACEHOLDER", sibling.parent
         sibling.add_next_sibling(new_disk)
-        result = source_xml.to_xml
 
-        result.gsub("<PLACEHOLDER/>", """
-          <Item>
-            <rasd:AddressOnParent>#{disks_count}</rasd:AddressOnParent>
+        xmltmpl = ''
+        if disk_parent_ids.size == 0
+           parent_id = 99
+           xmltmpl << '<Item>
+           <rasd:Address>0</rasd:Address>
+           <rasd:Description>SCSI Controller</rasd:Description>
+           <rasd:ElementName>SCSI Controller 0</rasd:ElementName>
+           <rasd:InstanceID>99</rasd:InstanceID>
+           <rasd:ResourceSubType>VirtualSCSI</rasd:ResourceSubType>
+           <rasd:ResourceType>6</rasd:ResourceType>
+           </Item>'
+        elsif disk_parent_ids.size == 1
+                parent_id = disk_parent_ids.first
+        else
+                raise InvalidStateError, "Could not handle this request because multiple nodes with ResourceType 17 and different rasd:Parent exist"
+        end
+        xmltmpl << '<Item>
+            <rasd:AddressOnParent>0</rasd:AddressOnParent>
             <rasd:Description>Hard disk</rasd:Description>
-            <rasd:ElementName>Hard disk #{disks_count + 1}</rasd:ElementName>
-            <rasd:HostResource
-                  xmlns:ns12=\"http://www.vmware.com/vcloud/v1.5\"
-                  ns12:capacity=\"#{disk_info[:disk_size]}\"
-                  ns12:busSubType=\"lsilogic\"
-                  ns12:busType=\"6\"/>
-            <rasd:InstanceID>200#{disks_count}</rasd:InstanceID>
-            <rasd:Parent>#{disk_parent_ids.first}</rasd:Parent>
+            <rasd:ElementName>Hard disk %s</rasd:ElementName>
+            <rasd:HostResource xmlns:vcloud="http://www.vmware.com/vcloud/v1.5" vcloud:capacity="%s" vcloud:busSubType="VirtualSCSI" vcloud:busType="6"/>
+
+            <rasd:InstanceID>200%s</rasd:InstanceID>
+            <rasd:Parent>%s</rasd:Parent>
             <rasd:ResourceType>17</rasd:ResourceType>
-          </Item>""")
+          </Item>'
+        xml = xmltmpl % [ disks_count + 1, disk_info[:disk_size],disks_count,parent_id ]
+        result = source_xml.to_xml.gsub("<PLACEHOLDER/>",xml)
+        puts result
+        result
       end
 
       def edit_disk(source_xml, disk_info)
