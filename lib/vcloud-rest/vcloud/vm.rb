@@ -19,6 +19,9 @@ builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 '
       body = builder % [mediaid,mediaid]
       response, headers = send_request(params,body,"application/vnd.vmware.vcloud.mediaInsertOrEjectParams+xml")
+      task_id = headers[:location].gsub(/.*\/task\//, "")
+      task_id
+
     end
 
     def get_cdrom_name(vmid)
@@ -50,8 +53,9 @@ builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 </ns6:MediaInsertOrEjectParams>
 '
       body = builder % [@api_url,mediaid]
-      puts body
       response, headers = send_request(params,body,"application/vnd.vmware.vcloud.mediaInsertOrEjectParams+xml")
+      task_id = headers[:location].gsub(/.*\/task\//, "")
+      task_id
     end
 
     # Retrieve information (i.e., memory and CPUs)
@@ -551,7 +555,6 @@ builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     private
       def add_disk(source_xml, disk_info)
         disks_count = source_xml.css("Item").css("rasd|HostResource").count
-        p disks_count
         disk_parent_ids = Set.new
 
         source_xml.css("Item").each do |entry|
@@ -592,7 +595,6 @@ builder = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
           </Item>'
         xml = xmltmpl % [ disks_count + 1, disk_info[:disk_size],disks_count,parent_id ]
         result = source_xml.to_xml.gsub("<PLACEHOLDER/>",xml)
-        puts result
         result
       end
 
