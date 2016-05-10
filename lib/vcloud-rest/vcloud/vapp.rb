@@ -27,7 +27,7 @@ module VCloudClient
       end
 
       description = response.css("Description").first
-      created = DateTime.iso8601(response.css("DateCreated").text)
+      created = DateTime.iso8601(response.css("DateCreated").first.text)
       description = description.text unless description.nil?
 
       ip = response.css('IpAddress').first
